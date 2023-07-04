@@ -22,10 +22,6 @@ class FileManagerTest(TestCase):
         self.manager.create(model1)
         self.assertTrue(hasattr(model1, '_id'))
 
-    def test1_read(self):
-        pass
-
-
 
 
 if __name__ == '__main__':
