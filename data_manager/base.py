@@ -2,28 +2,32 @@ from abc import ABC, abstractmethod
 from typing import Any, Generator, Optional
 
 class BaseModel(ABC):
-    _id: int  # annotation (NOT CLASS VAR, NOT INSTANCE VAR)
-    x: float = 2.0  # CLASS VAR + INSTANCE VAR
+    TABLE_NAME = None
+    COLUMNS = {
+        '_id': ('_id', 'SERIAL', 'PRIMARY KEY'),
+    }
+    
+    _id: int
 
     def __repr__(self):
         return f"<{self.__class__.__name__} #{self._id}>"
     
-    def __eq__(self, __value: object) -> bool: # == 
-        return (type(self) is type(__value) and
-                self._id == __value._id)
-
     @classmethod
-    def from_dict(cls, data): # {"_id":1, "code":"akbar", ...} -> Event object
+    def from_dict(cls, data):
         obj = cls.__new__(cls)
         for k, v in data.items():
             setattr(obj, k, v)
         return obj
 
-    def to_dict(self) -> dict:
+    @classmethod
+    def _get_columns(cls):
+        super_cols = getattr(super(cls, cls), 'COLUMNS', {})
+        cls_cols = getattr(cls, 'COLUMNS', {})
+        super_cols.update(cls_cols)
+        return super_cols
+
+    def to_dict(self):
         result = vars(self).copy()
-        for k in result.keys():
-            if not k.lower():  # TODO: review
-                del result[k]
         return result
 
 
