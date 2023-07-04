@@ -7,7 +7,7 @@ class FileManager(BaseManager):
     ROOT_PATH_CONFIG_KEY = 'ROOT_PATH'
 
     def __init__(self, config: dict) -> None:
-        assert(self.ROOT_PATH_CONFIG_KEY in config.keys(), "Provide a config")
+        assert self.ROOT_PATH_CONFIG_KEY in config.keys(), "Provide a config"
         super().__init__(config)
     
     @property
@@ -49,8 +49,11 @@ class FileManager(BaseManager):
             model = pickle.load(f)
             return model # isinstance(model, Event) -> True
 
-    def update(self, m: BaseModel) -> None:
-        pass # TODO
+    def update(self, model: BaseModel) -> None:
+        assert hasattr(model, '_id'), "model must have _id"
+        path = self._get_file_path(model._id, model.__class__)  # model._id = None -> data/Event_None.pkl
+        with open(path, 'wb') as f:
+            pickle.dump(model, f)
 
     def delete(self, id: int, model_cls: type) -> None:
         # Get path
@@ -60,8 +63,16 @@ class FileManager(BaseManager):
         if os.path.exists(path):
             os.remove(path)
 
-    def read_all(self, model_cls: type = None) -> Generator:
-        pass # TODO
+    def read_all(self, model_cls: type = None) -> Generator:  # data/Event_1.pkl
+        for file_name in os.listdir(self.files_root):
+            if not file_name.endswith('.pkl'):
+                continue
+            if model_cls and not file_name.startswith(model_cls.__name__): # Need fix
+                continue
+            file_path = os.path.join(self.files_root, file_name)  # data, Event_2.pkl -> data/Event_2.pkl
+            with open(file_path, 'rb') as f:
+                instance = pickle.load(f)
+                yield instance
 
     def truncate(self, model_cls: type) -> None:
         for model in self.read_all(model_cls):
