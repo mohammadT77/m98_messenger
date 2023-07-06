@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "m98",
+            "connectString": "postgres://eemjflhg:17CkxoiUV7eQGqXLxXZGKstCpgBCE0rM@kesavan.db.elephantsql.com/eemjflhg"
+        }
+    ]
+}

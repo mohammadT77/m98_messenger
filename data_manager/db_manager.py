@@ -1,12 +1,13 @@
 from .base import BaseManager, BaseModel
 import psycopg2 as pg
+import psycopg2.extras
 
 class DBManager(BaseManager):
     
     def __init__(self, config: dict) -> None:
         super().__init__(config)  # {'db_config':{'dbname':'', 'host':'', 'password':'', 'user':'', ...}}
         self._db_config = config['db_config']
-        self.__conn = pg.connect(**self._db_config)
+        self.__conn = pg.connect(**self._db_config)  # pg.connect(dbname='pg', host='localhost', ...)
 
     @staticmethod
     def converter_model_to_query(value):
@@ -46,18 +47,27 @@ class DBManager(BaseManager):
             keys = ','.join(model_data.keys())
             values = ','.join(map(converter, model_data.values())) # 1, 'akbar', 'akbar1',... -> 1, 'akbar', 'akbar1' -> "1, 'akbar', 'akbar1'"
             curs.execute(f"INSERT INTO {m.TABLE_NAME} ({keys}) VALUES ({values}) RETURNING _id")
-            new_model_id = curs.fetchone()
+            new_model_id = curs.fetchone()[0]
             m._id = new_model_id
         
+        # INSERT INTO users (_id, username, ...) VALUES (2, 'akbar', ...)
         self.__conn.commit()
         return new_model_id
 
-       
-        
 
     def read(self, id: int, model_cls: type) -> BaseModel:
-        # TODO: Complete
-        pass
+        assert issubclass(model_cls, BaseModel)
+        assert getattr(model_cls, 'TABLE_NAME', None), "Could not find TABLE NAME"
+
+        # Read from DB
+        with self.__conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as curs:
+            # (3, 'asqar', '@asqar', ....)
+            # {'_id': 3, ...}
+            curs.execute(f"SELECT * FROM {model_cls.TABLE_NAME} WHERE _id = %s", (id, ))
+            model_data:dict = curs.fetchone()
+            assert model_data, "Not found"
+            return model_cls.from_dict(model_data)
+
 
 
     def update(self, m: BaseModel) -> None:
@@ -66,14 +76,27 @@ class DBManager(BaseManager):
 
 
     def delete(self, id: int, model_cls: type) -> None:
-        # TODO: Complete
-        pass
+        assert getattr(model_cls, 'TABLE_NAME', None), "Could not find TABLE NAME"
+
+        with self.__conn.cursor() as curs:
+            curs.execute(f"DELETE FROM {model_cls.TABLE_NAME} WHERE _id = %s", (id, ))
+        self.__conn.commit()
 
 
 
     def read_all(self, model_cls: type):
-        # TODO: Complete
-        pass
+        assert issubclass(model_cls, BaseModel)
+        assert getattr(model_cls, 'TABLE_NAME', None), "Could not find TABLE NAME"
+
+        with self.__conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as curs:
+            curs.execute(f"SELECT * FROM {model_cls.TABLE_NAME}")
+            # Fetch list of dictionary
+            models_data = curs.fetchall()
+        
+        # Convert to model instance
+        for model_data in models_data:
+            yield model_cls.from_dict(model_data)
+        
 
 
     def truncate(self, model_cls: type) -> None:
