@@ -71,9 +71,13 @@ class DBManager(BaseManager):
 
 
     def update(self, m: BaseModel) -> None:
-        # TODO: Complete
-        pass
-
+        data_dict = m.to_dict()
+        convertor = self.converter_model_to_queryable
+        for key, value in data_dict.items():
+            new_data = ','.join(f'{key}={convertor(value)}')
+        with self.__conn.cursor() as curs:
+            curs.execute(f'UPDATE {m.TABLE_NAME} SET {new_data} WHERE _id = {m._id}')
+        self.__conn.commit()
 
     def delete(self, id: int, model_cls: type) -> None:
         assert getattr(model_cls, 'TABLE_NAME', None), "Could not find TABLE NAME"
@@ -100,8 +104,9 @@ class DBManager(BaseManager):
 
 
     def truncate(self, model_cls: type) -> None:
-        #TODO: Complete
-        pass
+        with self.__conn.cursor() as curs:
+            curs.execute(f"TRUNCATE TABLE {model_cls.TABLE_NAME}")
+        self.__conn.commit()
 
     
     
