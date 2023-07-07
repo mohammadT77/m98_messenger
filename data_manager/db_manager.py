@@ -127,3 +127,12 @@ class DBManager(BaseManager):
     @property
     def connection(self):
         return self.__conn
+    
+    def login(self, username, password, model_cls: type) -> bool:
+        assert issubclass(model_cls, BaseModel)
+        with self.__conn.cursor() as curs:
+            curs.execute(f"SELECT EXISTS(select * from {model_cls.TABLE_NAME} where username='{username}' and password='{password}')")
+            chk = curs.fetchone()[0]
+        return chk
+            
+        
