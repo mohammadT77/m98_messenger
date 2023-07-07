@@ -1,21 +1,14 @@
 from data_manager.db_manager import DBManager
 from menu.utils import get_input
 from core.models import Message, User
-
-
-# def login():
-#     username = get_input("Enter user name")
-
-db_config = {
-    'dbname':'test', 'host':'localhost',
-     'password':'postgres', 'user':'postgres', 'port': '5432'
-     }
+from db_config import db_config
     
 
 manager = DBManager({'db_config':db_config})
 
 
 def signup():
+    print("Register:")
     name = get_input("Enter name: ")
     username = get_input("Enter username: ")
     password = get_input("Enter password: ")
@@ -23,45 +16,53 @@ def signup():
     user = User(name, username, password)
 
     manager.create(user)
+    
+    User.CURRENT_USER = user
+    
+    return user
 
 
 def login():
-    ch = get_input("1. Login\n2. signup\n>>>")
-    if ch == '2':
-        signup()
-        return login()
     
     username = get_input("Enter username: ")
     password = get_input("Enter password: ")
 
-    users = manager.read_all(User)
-
-    for user in users:
-        if user.username == username:
-            if user.password == password:
-                global userid
-                userid = user._id
-                return userid
-            else:
-                print("wrong password try again!")
-                return login()
-            
-    print("username does not exists!")
-    return login()
+    user = User.login(manager, username, password)
+    User.CURRENT_USER = user
+    
+    if user is None:
+        print("username does not exist!")
+        return signup()
+    elif user is False:
+        print("invalid password, try again:")
+        return login()
+    else:
+        print("Welcome")
+        return user
+    
 
 
 def create():
-    reciever_username = get_input("Enter reciever username: ")
-    data = get_input("Enter data: ")
+    receiver_username = get_input("Enter receiver username: ")
+    data = get_input("Enter text: ")
     draft = get_input("would you like to send this message?(True/False): ")
     
-    for user in manager.read_all(User):
-        if user.username == reciever_username:
-            reciever_id = user._id
 
-    message = Message(userid, reciever_id, data, draft)
+    sender = User.CURRENT_USER
+
+    for user in manager.read_all(User):
+        user: User
+        if user.username == receiver_username:
+            receiver = user
+            break
+    else:
+        print("Receiver user not found")
+        return
+    
+    message = Message(sender._id, receiver._id, data, draft)
 
     manager.create(message)
+    print("Message created!")
 
 
 def send(m:object):
@@ -73,7 +74,7 @@ def draft():
 
     inbox = []
     for _m in messages:
-        if _m.sender_id == userid and not bool(_m.draft):
+        if _m.sender_id == User.CURRENT_USER and not bool(_m.draft):
             inbox.append(_m)
     
     if not inbox:
@@ -95,7 +96,7 @@ def inbox():
 
     inbox = []
     for _m in messages:
-        if _m.reciever_id == userid:
+        if _m.reciever_id == User.CURRENT_USER._id:
             inbox.append(_m)
     
     if not inbox:
@@ -105,12 +106,12 @@ def inbox():
             print(f"{i+1}. {m.data}\n{m.created_at}")
     
 
-def sent():
+def sentbox():
     messages = manager.read_all(Message)
 
     inbox = []
     for _m in messages:
-        if _m.sender_id == userid and bool(_m.draft):
+        if _m.sender_id == User.CURRENT_USER._id and bool(_m.draft):
             inbox.append(_m)
     
     if not inbox:

@@ -10,9 +10,23 @@ class User(BaseModel):
         'password':('password','VARCHAR(100)','NOT NULL'),  #      password varchar(100) NOT NULL)
     }
 
+    CURRENT_USER = None
+
     name: str
     username: str
     password: str
+
+    @classmethod
+    def login(cls, manager, username, password):
+        users = manager.read_all(cls)
+
+        for user in users:
+            if user.username == username:
+                if user.password == password:
+                    return user
+                else:
+                    return False
+        return None
 
 
 @dataclass
@@ -30,4 +44,7 @@ class Message(BaseModel):
     reciever_id: int
     data: str
     draft: bool
+
+
+    # implement send
 

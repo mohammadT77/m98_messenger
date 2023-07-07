@@ -1,12 +1,7 @@
 from data_manager import DBManager
 from core.models import User
 from menu import models
-from actions import *
-
-db_config = {
-    'dbname':'test', 'host':'localhost',
-     'password':'postgres', 'user':'postgres', 'port': '5432'
-     }
+from core.menu_actions import *
     
 
 main_menu_route = {
@@ -22,7 +17,7 @@ main_menu_route = {
         },
         {
             'name': 'Send box',
-            'action': sent
+            'action': sentbox
         },
         {
             'name': 'Drafts',
@@ -50,6 +45,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# manager = DBManager({'db_config':db_config})
