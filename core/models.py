@@ -17,4 +17,17 @@ class User(BaseModel):
 
 @dataclass
 class Message(BaseModel):
-    pass
+    TABLE_NAME = 'message'
+    COLUMNS = {
+        'sender_id':('sender_id','INT','REFERENCES users(_id)'),   #      CREATE TABLE users (username VARCHAR(20) UNIQUE,
+        'reciever_id':('reciever_id','INT','REFERENCES users(_id)'),  #          name VARCHAR(20) NOT NULL,
+        'data':('data','VARCHAR(200)','NOT NULL'),  #      password varchar(100) NOT NULL)
+        'created_at':('created_at', 'TIMESTAMP', 'DEFAULT NOW()'),
+        'draft':('draft', 'BOOLEAN')
+    }
+
+    sender_id: int
+    reciever_id: int
+    data: str
+    draft: bool
+
