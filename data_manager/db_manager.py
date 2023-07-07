@@ -1,6 +1,7 @@
 from .base import BaseManager, BaseModel
 import psycopg2 as pg
 import psycopg2.extras
+from datetime import datetime
 
 class DBManager(BaseManager):
     
@@ -12,6 +13,8 @@ class DBManager(BaseManager):
     @staticmethod
     def converter_model_to_query(value):
         if isinstance(value, str):
+            return f"'{value}'"
+        elif isinstance(value, datetime):
             return f"'{value}'"
         elif value is None:
             return 'NULL'
@@ -77,12 +80,11 @@ class DBManager(BaseManager):
 
         fresh_data = m.to_dict() # {'_id':1, 'username':'akbar', ...}
         id = fresh_data.pop('_id') # id = _id, fresh_data = {'username':'akbar', ...}
-
-        # dict..items() -> [('username', 'akbar'), (...)]
-        # before join -> ["username='akbar'", "firstname='asqar'"]
-        # after join -> "username='akbar', firstname='asqar', ..."
+    
+        # fresh_data['created_at'] = str(fresh_data['created_at'])
         updates = ','.join(map(lambda item: item[0]+'='+ f"{converter(item[1])}", fresh_data.items()))
         print("updates:", updates)
+
         
         with self.__conn.cursor() as cur:
             cur.execute(f"UPDATE {m.TABLE_NAME} SET {updates} WHERE _id = %s;", (id, ))
