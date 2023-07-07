@@ -124,4 +124,6 @@ class DBManager(BaseManager):
         self.__conn.commit()
 
     
-    
+    @property
+    def connection(self):
+        return self.__conn
