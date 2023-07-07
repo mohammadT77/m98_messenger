@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generator, Optional
 
+
 class BaseModel(ABC):
     TABLE_NAME = None
     COLUMNS = {
@@ -11,6 +12,8 @@ class BaseModel(ABC):
 
     def __repr__(self):
         return f"<{self.__class__.__name__} #{self._id}>"
+
+
     
     @classmethod
     def from_dict(cls, data):
