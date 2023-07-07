@@ -1,8 +1,7 @@
 from data_manager.db_manager import DBManager
 from menu.utils import get_input
 from core.models import Message, User
-from db_config import db_config
-    
+from db_config import db_config    
 
 manager = DBManager({'db_config':db_config})
 

@@ -28,8 +28,7 @@ def create_message(req: Request):
             receiver = _user
             break
     else:
-        print("Receiver user not found")
-        return
+        return Response(b"Receiver user not found", 404, 'text/plain')
     
     message = Message(sender._id, receiver._id, msg_data['content'], False)
 
