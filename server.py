@@ -5,8 +5,13 @@ from core.views import *
 
 
 routes = {
-    ('POST', '/msg/create'): create_message,
-    ('GET', '/inbox'): inbox,
+    ('GET', '/user'): get_user,
+    ('PATCH', '/user'): change_name,
+    ('POST', '/user'): register_user,
+
+    ('POST', '/message'): create_message,
+    ('GET', '/message/inbox'): inbox,
+    ('GET', '/message/sent'): sentbox,
 }
 
 
@@ -50,10 +55,14 @@ class MessengerRequestHandler(SimpleHTTPRequestHandler):
     def do_POST(self) -> None:
         self.handle_request('POST')
 
+    def do_PATCH(self) -> None:
+        self.handle_request('PATCH')
+    
+print("Please make sure you are connected to database and tables are created there.")
 
-
-server = HTTPServer(("0.0.0.0", 8000), MessengerRequestHandler)
+host_port = ("0.0.0.0", 8000)
+server = HTTPServer(host_port, MessengerRequestHandler)
+print("Starting server on:", host_port)
 server.serve_forever()  # while true:
-print("AKBAR BABAII")
 
 
